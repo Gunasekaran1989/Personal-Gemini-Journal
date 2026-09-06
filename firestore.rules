@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny safety net: Block all access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Health check / connection test verification path
+    match /test/connection {
+      allow read: if true;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // PRIVACY DECISION: Admin does NOT have unrestricted access to private journal content.
+    // Only the document owner can read and write their own interactions.
+    match /users/{userId}/interactions/{interactionId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Backward and alias compatibility for user reflections
+    match /users/{userId}/reflections/{reflectionId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Administrative registry: Read-only for admins; writes strictly forbidden from client SDKs
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Audit logs: Read-only for admins; writes strictly managed by server-side processes
+    match /admin_audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}

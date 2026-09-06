@@ -1,0 +1,94 @@
+{
+  "entities": {
+    "Interaction": {
+      "title": "Interaction",
+      "description": "A user-isolated journal entry or reflection interaction with multi-turn Gemini conversation, summaries, and action points.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the interaction"
+        },
+        "userId": {
+          "type": "string",
+          "description": "User ID of the owner"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title or headline of the journal reflection"
+        },
+        "content": {
+          "type": "string",
+          "description": "Main user journal entry content"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category or theme (e.g. Reflection, Brainstorming, Gratitude, Career, Learning)"
+        },
+        "summary": {
+          "type": "string",
+          "description": "AI-generated executive summary of the reflection"
+        },
+        "actionItems": {
+          "type": "array",
+          "description": "List of key takeaways or action items"
+        },
+        "messages": {
+          "type": "array",
+          "description": "Multi-turn chat dialogue between user and Gemini assistant"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["userId", "title", "createdAt"]
+    },
+    "AdminRegistry": {
+      "title": "AdminRegistry",
+      "description": "Authoritative list of administrative users, populated exclusively by backend server systems.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Admin UID" },
+        "email": { "type": "string", "description": "Admin email address" },
+        "assignedAt": { "type": "string", "description": "Assignment timestamp" },
+        "role": { "type": "string", "description": "Always ADMIN" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable security and administrative audit trail.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique log ID" },
+        "actorUid": { "type": "string", "description": "UID of acting user or system" },
+        "actorEmail": { "type": "string", "description": "Email of acting user or system" },
+        "action": { "type": "string", "description": "Action performed" },
+        "targetResource": { "type": "string", "description": "Resource modified or inspected" },
+        "result": { "type": "string", "description": "SUCCESS, DENIED, or ERROR" },
+        "timestamp": { "type": "string", "description": "ISO timestamp" },
+        "metadata": { "type": "object", "description": "Operational metadata without sensitive journal text" }
+      },
+      "required": ["id", "actorEmail", "action", "result", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/interactions/{interactionId}": {
+      "schema": "Interaction",
+      "description": "Stores user-isolated reflections, journal entries, and multi-turn conversations with Gemini."
+    },
+    "/admins/{adminId}": {
+      "schema": "AdminRegistry",
+      "description": "Restricted administrative identity documents."
+    },
+    "/admin_audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Append-only security and operational audit trail."
+    }
+  }
+}
